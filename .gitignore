@@ -1,0 +1,5 @@
+simulate
+dumpsim
+*.o
+*.obj
+.DS_Store
