@@ -778,6 +778,10 @@ int ALU_OUT = 0;   /* input to the GateALU tristate */
 int SHF_OUT = 0;   /* input to the GateSHF tristate */
 int MDR_OUT = 0;   /* input to the GateMDR tristate (word, or selected+sign-extended byte) */
 
+int SP_OUT     = 0;   /* SPMUX output: R6+2, R6-2, SSP or USP; input to the GateSP tristate */
+int PSR_OUT    = 0;   /* {PSR15, 000000000000, N, Z, P}: input to the GatePSR tristate */
+int VECTOR_OUT = 0;   /* x0200 + (VECTOR << 1): input to the GateVector tristate */
+
 /* sign-extend the low 'bits' bits of value to 16 bits */
 int sext(int value, int bits) 
 {
@@ -797,14 +801,18 @@ void eval_bus_drivers()
   int addr1;
   int addr2;
 
-  /* ---- SR1: which register feeds the ALU's A input and ADDR1MUX's BaseR ---- */
-  if (GetSR1MUX(micro) == 0) 
+  /* ---- SR1: which register feeds the ALU's A input, ADDR1MUX's BaseR, and the stack unit ---- */
+  if (GetSR1MUX2(micro) == 0) 
   {
-    sr1_num = (ir >> 9) & 0x7;                             /* IR[11:9]: shift ir right 9, AND with 0x7 */
+    sr1_num = (ir >> 9) & 0x7;     /* IR[11:9]: (ir >> 9) & 0x7 */
   } 
+  else if (GetSR1MUX2(micro) == 1) 
+  {
+    sr1_num = (ir >> 6) & 0x7;     /* IR[8:6]: (ir >> 6) & 0x7 */
+  }
   else 
   {
-    sr1_num = (ir >> 6) & 0x7;                             /* IR[8:6]: shift ir right 6, AND with 0x7 */
+    sr1_num = 6;     /* 6: register R6, the stack pointer (SR1MUX = 10) */
   }
   SR1_OUT = CURRENT_LATCHES.REGS[sr1_num];                               /* CURRENT_LATCHES.REGS[sr1_num] */
 
@@ -921,6 +929,18 @@ void eval_bus_drivers()
       MDR_OUT = sext((CURRENT_LATCHES.MDR >> 8) & 0xFF, 8);                 /* odd address: sext((MDR shifted right 8) AND 0xFF, 8) */
     }
   }
+
+  /* ---- Lab 4: stack-pointer unit (DP3): SPMUX picks R6+2, R6-2, SSP or USP ---- */
+  if (GetSPMUX(micro) == 0)      { SP_OUT = Low16bits(SR1_OUT + 2); }   /* Low16bits(SR1_OUT + 2): pop */
+  else if (GetSPMUX(micro) == 1) { SP_OUT = Low16bits(SR1_OUT - 2); }   /* Low16bits(SR1_OUT - 2): push */
+  else if (GetSPMUX(micro) == 2) { SP_OUT = CURRENT_LATCHES.SSP; }   /* CURRENT_LATCHES.SSP */
+  else                           { SP_OUT = CURRENT_LATCHES.USP; }   /* CURRENT_LATCHES.USP */
+
+  /* ---- Lab 4: PSR value (DP1) ---- */
+  PSR_OUT = (CURRENT_LATCHES.PSR15 << 15) | (CURRENT_LATCHES.N << 2) | (CURRENT_LATCHES.Z << 1) | CURRENT_LATCHES.P;      /* (CURRENT_LATCHES.PSR15 << 15) | (CURRENT_LATCHES.N << 2) | (CURRENT_LATCHES.Z << 1) | CURRENT_LATCHES.P */
+
+  /* ---- Lab 4: vector-table address (DP4) ---- */
+  VECTOR_OUT = 0x0200 + ((CURRENT_LATCHES.VECTOR & 0xFF) << 1);   /* 0x0200 + ((CURRENT_LATCHES.VECTOR & 0xFF) << 1) */
 }
 
 
@@ -948,6 +968,9 @@ void drive_bus()
   {
     BUS = MDR_OUT;        /* MDR_OUT */
   } 
+  else if (GetGATE_PSR(micro))    { BUS = PSR_OUT; }   /* PSR_OUT */
+  else if (GetGATE_SP(micro))     { BUS = SP_OUT; }   /* SP_OUT */
+  else if (GetGATE_VECTOR(micro)) { BUS = VECTOR_OUT; }   /* VECTOR_OUT */
   else 
   {
     BUS = 0;                    /* nothing gated: put 0 on the bus */
