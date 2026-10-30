@@ -198,6 +198,10 @@ int INTV; /* Interrupt vector register */
 int EXCV; /* Exception vector register */
 int SSP; /* Initial value of system stack pointer */
 /* MODIFY: You may add system latches that are required by your implementation */
+int PSR15;   /* PSR15: privilege bit PSR[15], 1 = user, 0 = supervisor */
+int USP;   /* USP: saved user stack pointer, loaded from R6 on a user-to-supervisor switch */
+int VECTOR;   /* VECTOR: active 8-bit vector, loaded from INTV or EXCV at entry */
+int INT;   /* INT: interrupt-pending flag, set by the timer at cycle 300, cleared when taken */
 
 } System_Latches;
 
@@ -554,6 +558,7 @@ void initialize(char *argv[], int num_prog_files) {
     CURRENT_LATCHES.STATE_NUMBER = INITIAL_STATE_NUMBER;
     memcpy(CURRENT_LATCHES.MICROINSTRUCTION, CONTROL_STORE[INITIAL_STATE_NUMBER], sizeof(int)*CONTROL_STORE_BITS);
     CURRENT_LATCHES.SSP = 0x3000; /* Initial value of system stack pointer */
+    CURRENT_LATCHES.PSR15 = 1;       /* set CURRENT_LATCHES.PSR15 to 1: start in user mode (clarification 7) */
 
     NEXT_LATCHES = CURRENT_LATCHES;
 
