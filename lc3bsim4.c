@@ -668,21 +668,23 @@ void eval_micro_sequencer()
    * micro sequencer logic. Latch the next microinstruction.
    */
 
-  int *micro = CURRENT_LATCHES.MICROINSTRUCTION;   /* (A) */
+  int *micro = CURRENT_LATCHES.MICROINSTRUCTION;   
   int next_state;
 
+  eval_exception();   /* call eval_exception(): sets the EXC and EXC_VECTOR wires for this cycle */
+
   if (GetIRD(micro) == 1) 
-  {                        /* (B) */
+  {                        
     next_state = (CURRENT_LATCHES.IR >> 12) & 0xF;                 
   }
   else 
   {
-    int j    = GetJ(micro);                        /* (C) */
-    int cond = GetCOND(micro);
+    int j    = GetJ(micro);                        
+    int cond = GetCOND3(micro);   /* GetCOND3(micro): full 3-bit COND, 0-5 */
     next_state = j;
 
     if (cond == 1) 
-    {                               /* (D) */
+    {                               
       next_state = next_state | ((1 & CURRENT_LATCHES.READY) << 1);   /* Check ready bit */
     }
     if (cond == 2) 
@@ -693,9 +695,21 @@ void eval_micro_sequencer()
     {
       next_state = next_state | (CURRENT_LATCHES.IR >> 11 & 0x1);  /* check ir[11] */
     }
+    if (cond == 4) 
+    {
+      next_state = next_state | ((1 & CURRENT_LATCHES.INT) << 3);   /* next_state | ((1 & CURRENT_LATCHES.INT) << 3): interrupt pending -> J[3] */
+    }
+    if (cond == 5) 
+    {
+      next_state = next_state | ((1 & CURRENT_LATCHES.PSR15) << 3);   /* next_state | ((1 & CURRENT_LATCHES.PSR15) << 3): user mode -> J[3] */
+    }
+  }
+  if (EXC) 
+  {
+    next_state = 42;   /* next_state = 42: exception entry overrides every other next-state choice */
   }
 
-  NEXT_LATCHES.STATE_NUMBER = next_state;          /* (E) */
+  NEXT_LATCHES.STATE_NUMBER = next_state;          
   memcpy(NEXT_LATCHES.MICROINSTRUCTION, CONTROL_STORE[next_state], sizeof(int) * CONTROL_STORE_BITS);
 }
 
