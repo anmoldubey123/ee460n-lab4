@@ -126,6 +126,21 @@ int GetR_W(int *x)           { return(x[R_W]); }
 int GetDATA_SIZE(int *x)     { return(x[DATA_SIZE]); } 
 int GetLSHF1(int *x)         { return(x[LSHF1]); }
 /* MODIFY: you can add more Get functions for your new control signals */
+/* Lab 4 getters */
+int GetCOND3(int *x)         { return((x[COND2] << 2) + (x[COND1] << 1) + x[COND0]); }  /* (x[COND2] << 2) + (x[COND1] << 1) + x[COND0]: full 3-bit COND */
+int GetSR1MUX2(int *x)       { return((x[SR1MUX1] << 1) + x[SR1MUX]); }  /* (x[SR1MUX1] << 1) + x[SR1MUX]: 0 = 11.9, 1 = 8.6, 2 = R6 */
+int GetDRMUX2(int *x)        { return((x[DRMUX1] << 1) + x[DRMUX]); }  /* (x[DRMUX1] << 1) + x[DRMUX]: 0 = 11.9, 1 = R7, 2 = R6 */
+int GetSPMUX(int *x)         { return((x[SPMUX1] << 1) + x[SPMUX0]); }  /* (x[SPMUX1] << 1) + x[SPMUX0]: 0 = R6+2, 1 = R6-2, 2 = SSP, 3 = USP */
+int GetEXC_CHECK(int *x)     { return(x[EXC_CHECK]); }  /* the single bit x[EXC_CHECK] */
+int GetLD_PSR(int *x)        { return(x[LD_PSR]); }  /* the single bit x[LD_PSR] */
+int GetLD_SSP(int *x)        { return(x[LD_SSP]); }  /* the single bit x[LD_SSP] */
+int GetLD_USP(int *x)        { return(x[LD_USP]); }  /* the single bit x[LD_USP] */
+int GetLD_VECTOR(int *x)     { return(x[LD_VECTOR]); }  /* the single bit x[LD_VECTOR] */
+int GetGATE_PSR(int *x)      { return(x[GATE_PSR]); }  /* the single bit x[GATE_PSR] */
+int GetGATE_SP(int *x)       { return(x[GATE_SP]); }  /* the single bit x[GATE_SP] */
+int GetGATE_VECTOR(int *x)   { return(x[GATE_VECTOR]); }  /* the single bit x[GATE_VECTOR] */
+int GetPSRMUX(int *x)        { return(x[PSRMUX]); }  /* the single bit x[PSRMUX]: 0 = from BUS, 1 = supervisor */
+int GetVECTORMUX(int *x)     { return(x[VECTORMUX]); }  /* the single bit x[VECTORMUX]: 0 = INTV, 1 = EXCV */
 
 /***************************************************************/
 /* The control store rom.                                      */
