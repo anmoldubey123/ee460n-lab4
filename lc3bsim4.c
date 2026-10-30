@@ -238,7 +238,15 @@ void help() {
 /* Purpose   : Execute a cycle                                 */
 /*                                                             */
 /***************************************************************/
-void cycle() {                                                
+void cycle() {   
+  /* Lab 4: simulated timer device, raises one interrupt at cycle 300 (clarifications 3, 6, 16) */
+  if (CYCLE_COUNT == 300) /* CYCLE_COUNT equals 300 */
+  {     
+    CURRENT_LATCHES.INT = 1;         /* set CURRENT_LATCHES.INT to 1: the microsequencer sees it this cycle */
+    NEXT_LATCHES.INT = 1;         /* set NEXT_LATCHES.INT to 1: survives the CURRENT = NEXT commit at the end of this cycle */
+    CURRENT_LATCHES.INTV = 0x01;         /* set CURRENT_LATCHES.INTV to 0x01: the timer's interrupt vector */
+    NEXT_LATCHES.INTV = 0x01;         /* set NEXT_LATCHES.INTV to 0x01 */
+  }                                             
 
   eval_micro_sequencer();   
   cycle_memory();
