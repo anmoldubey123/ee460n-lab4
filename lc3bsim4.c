@@ -1033,14 +1033,9 @@ void latch_datapath_values()
   if (GetLD_REG(micro) == 1) 
   {
     int dr;
-    if (GetDRMUX(micro) == 0) 
-    {
-      dr = ((ir >> 9) & 0x7);                             /* IR[11:9]: (ir shifted right 9) AND 0x7 */
-    } 
-    else 
-    {
-      dr = 7;                                 /* R7 */
-    }
+    if (GetDRMUX2(micro) == 0)      { dr = (CURRENT_LATCHES.IR >> 9) & 0x7;}   /* IR[11:9]: (CURRENT_LATCHES.IR >> 9) & 0x7 */
+    else if (GetDRMUX2(micro) == 1) { dr = 7; }   /* 7: R7 (JSR, JSRR, TRAP) */
+    else                            { dr = 6; }   /* 6: R6, the stack pointer (DRMUX = 10) */
     NEXT_LATCHES.REGS[dr] = BUS;            /* BUS */
   }
 
@@ -1064,17 +1059,9 @@ void latch_datapath_values()
   /* ---- PC ---- */
   if (GetLD_PC(micro) == 1) 
   {
-    if (GetPCMUX(micro) == 0) 
-    {
-      NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.PC + 2);        /* Low16bits(CURRENT_LATCHES.PC + 2) */
-    } 
-    else if (GetPCMUX(micro) == 1) 
-    {
-      NEXT_LATCHES.PC = BUS;                /* BUS */
-    } 
-    else 
-    {
-      NEXT_LATCHES.PC = ADDER_OUT;                /* ADDER_OUT */
-    }
+    if (GetPCMUX(micro) == 0)      { NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.PC + 2); }   /* Low16bits(CURRENT_LATCHES.PC + 2) -- unchanged */
+    else if (GetPCMUX(micro) == 1) { NEXT_LATCHES.PC = BUS; }   /* BUS -- unchanged */
+    else if (GetPCMUX(micro) == 2) { NEXT_LATCHES.PC = ADDER_OUT; }   /* ADDER_OUT -- unchanged, was the final else */
+    else                           { NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.PC - 2); }   /* Low16bits(CURRENT_LATCHES.PC - 2): undo the fetch increment */
   }
 }
