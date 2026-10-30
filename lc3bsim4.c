@@ -721,8 +721,10 @@ int MEM_OUT   = 0;   /* 16-bit word read from memory; MDR loads this in latch_da
 void cycle_memory() 
 {
   int *micro = CURRENT_LATCHES.MICROINSTRUCTION;
+  int  mem_en = GetMIO_EN(micro) && !EXC;   /* MEM.EN = MIO.EN AND NOT EXC: GetMIO_EN(micro) && !EXC */
 
-  if (GetMIO_EN(micro) == 0) 
+
+  if (!mem_en) 
   {
     return;                                   /* no memory access this cycle: nothing to do */
   }
@@ -737,7 +739,7 @@ void cycle_memory()
   if (mem_cycle == 5 && CURRENT_LATCHES.READY == 1) 
   {                                           /* 5th cycle: the latched R is 1 -> perform the access now */
     int word_addr = CURRENT_LATCHES.MAR >> 1; /* MAR byte address -> MEMORY row index */
-    int mar0      = CURRENT_LATCHES.MAR & 0x1;;         /* MAR[0]: 0 = low byte [0], 1 = high byte [1] */
+    int mar0      = CURRENT_LATCHES.MAR & 0x1;         /* MAR[0]: 0 = low byte [0], 1 = high byte [1] */
     int is_write  = GetR_W(micro);            /* 0 = RD, 1 = WR */
     int is_word   = GetDATA_SIZE(micro);      /* 0 = BYTE, 1 = WORD */
 
@@ -747,7 +749,7 @@ void cycle_memory()
     } 
     else 
     {
-      int we0 = is_word || (!is_word && mar0 == 0);;     /* low byte enable: word store, OR byte store with MAR[0]==0 */
+      int we0 = is_word || (!is_word && mar0 == 0);     /* low byte enable: word store, OR byte store with MAR[0]==0 */
       int we1 = is_word || (!is_word && mar0 == 1);     /* high byte enable: word store, OR byte store with MAR[0]==1 */
 
       if (we0 == 1) 
