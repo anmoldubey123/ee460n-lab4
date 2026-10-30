@@ -1064,4 +1064,50 @@ void latch_datapath_values()
     else if (GetPCMUX(micro) == 2) { NEXT_LATCHES.PC = ADDER_OUT; }   /* ADDER_OUT -- unchanged, was the final else */
     else                           { NEXT_LATCHES.PC = Low16bits(CURRENT_LATCHES.PC - 2); }   /* Low16bits(CURRENT_LATCHES.PC - 2): undo the fetch increment */
   }
+
+    /* ---- Lab 4: PSR (DP1) ---- */
+  if (GetLD_PSR(micro) == 1) 
+  {
+    if (GetPSRMUX(micro) == 1) 
+    {
+      NEXT_LATCHES.PSR15 = 0;   /* 0: enter supervisor mode (entry states 41, 42) */
+    } 
+    else 
+    {
+      NEXT_LATCHES.PSR15 = (BUS >> 15) & 1;   /* (BUS >> 15) & 1: restored privilege bit (RTI, state 58) */
+      NEXT_LATCHES.N     = (BUS >> 2) & 1;   /* (BUS >> 2) & 1: restored N */
+      NEXT_LATCHES.Z     = (BUS >> 1) & 1;   /* (BUS >> 1) & 1: restored Z */
+      NEXT_LATCHES.P     = BUS & 1;   /* BUS & 1: restored P */
+    }
+  }
+
+  /* ---- Lab 4: saved stack pointers (DP3), both load from SR1_OUT (R6 when SR1MUX = 10) ---- */
+  if (GetLD_SSP(micro) == 1) 
+  {
+    NEXT_LATCHES.SSP = SR1_OUT;   /* SR1_OUT: park the supervisor R6 (state 26) */
+  }
+  if (GetLD_USP(micro) == 1) 
+  {
+    NEXT_LATCHES.USP = SR1_OUT;   /* SR1_OUT: park the user R6 (state 44) */
+  }
+
+  /* ---- Lab 4: Vector register (DP4) and INT clear (DP6) ---- */
+  if (GetLD_VECTOR(micro) == 1) 
+  {
+    if (GetVECTORMUX(micro) == 0) 
+    {
+      NEXT_LATCHES.VECTOR = CURRENT_LATCHES.INTV & 0xFF;   /* CURRENT_LATCHES.INTV & 0xFF: the timer's vector */
+      NEXT_LATCHES.INT    = 0;   /* 0: the interrupt is being taken, so it's no longer pending */
+    } 
+    else 
+    {
+      NEXT_LATCHES.VECTOR = CURRENT_LATCHES.EXCV & 0xFF;   /* CURRENT_LATCHES.EXCV & 0xFF: the exception's vector */
+    }
+  }
+
+  /* ---- Lab 4: EXCV register, loads whenever the exception logic fires (no control bit) ---- */
+  if (EXC == 1) 
+  {
+    NEXT_LATCHES.EXCV = EXC_VECTOR;   /* EXC_VECTOR: from eval_exception() this cycle */
+  }
 }
