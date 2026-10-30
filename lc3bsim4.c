@@ -81,6 +81,16 @@ enum CS_BITS {
     DATA_SIZE,
     LSHF1,
 /* MODIFY: you have to add all your new control signals */
+    /* Lab 4 signals: bits 35-49, same order as the ucode4 columns */
+    COND2,                /* bit 35: COND2, the MSB of the 3-bit COND field */
+    EXC_CHECK,                /* bit 36: EXC_CHECK, enables the exception-detect logic */
+    LD_PSR, LD_SSP, LD_USP, LD_VECTOR,  /* bits 37-40: LD_PSR, LD_SSP, LD_USP, LD_VECTOR, in that order */
+    GATE_PSR, GATE_SP, GATE_VECTOR,        /* bits 41-43: GATE_PSR, GATE_SP, GATE_VECTOR, in that order */
+    PSRMUX,                /* bit 44: PSRMUX, 0 = load PSR from BUS (RTI), 1 = set supervisor */
+    SR1MUX1,                /* bit 45: SR1MUX1, the new high bit of SR1MUX (10 selects R6) */
+    DRMUX1,                /* bit 46: DRMUX1, the new high bit of DRMUX (10 selects R6) */
+    SPMUX1, SPMUX0,              /* bits 47-48: SPMUX1 then SPMUX0 (00 R6+2, 01 R6-2, 10 SSP, 11 USP) */
+    VECTORMUX,                /* bit 49: VECTORMUX, 0 = INTV, 1 = EXCV */
     CONTROL_STORE_BITS
 } CS_BITS;
 
