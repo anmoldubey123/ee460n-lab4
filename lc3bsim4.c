@@ -625,6 +625,41 @@ int main(int argc, char *argv[]) {
    Begin your code here 	  			       */
 /***************************************************************/
 
+/* Lab 4: exception-detect logic (datapath DP6). Combinational: recomputed at the start of
+   every cycle from CURRENT values. Used by the microsequencer, cycle_memory and latch. */
+int EXC = 0;          /* wire: 1 = an exception is detected this cycle (only if EXC.CHECK is set) */
+int EXC_VECTOR = 0;   /* wire: vector produced by the logic: x04 unknown, x02 protection, x03 unaligned */
+
+void eval_exception()
+{
+  int *mi = CURRENT_LATCHES.MICROINSTRUCTION;
+  int mar = CURRENT_LATCHES.MAR;
+  int op, unknown = 0, protect = 0, unaligned = 0;
+
+  op = (CURRENT_LATCHES.IR >> 12) & 0xF;   /* opcode: (CURRENT_LATCHES.IR >> 12) & 0xF */
+  if(op==10 || op==11)
+  {
+    unknown   = 1;   /* 1 if op is 10 or 11 (opcodes 1010, 1011) */
+  }
+  if(CURRENT_LATCHES.PSR15 == 1 && mar < 0x3000)
+  {
+    protect = 1;   /* 1 if CURRENT_LATCHES.PSR15 == 1 AND mar < 0x3000 */
+  }
+  if(GetDATA_SIZE(mi) == 1 && (mar & 1))
+  {
+    unaligned = 1;   /* 1 if GetDATA_SIZE(mi) == 1 (word) AND bit 0 of mar is 1: (mar & 1) */
+  }
+
+  EXC = 0;
+  EXC_VECTOR = 0;
+  if (GetEXC_CHECK(mi)) 
+  {
+    if (unknown)        { EXC = 1; EXC_VECTOR = 0x04;}   /* EXC = 1; EXC_VECTOR = 0x04 (highest priority) */
+    else if (protect)   { EXC = 1; EXC_VECTOR = 0x02; }   /* EXC = 1; EXC_VECTOR = 0x02 (beats unaligned) */
+    else if (unaligned) { EXC = 1; EXC_VECTOR = 0x03; }   /* EXC = 1; EXC_VECTOR = 0x03 */
+  }
+}
+
 
 void eval_micro_sequencer() 
 {
