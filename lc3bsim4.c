@@ -693,7 +693,7 @@ void eval_micro_sequencer()
     }
     if (cond == 3) 
     {
-      next_state = next_state | (CURRENT_LATCHES.IR >> 11 & 0x1);  /* check ir[11] */
+      next_state = next_state | ((CURRENT_LATCHES.IR >> 11) & 0x1);  /* check ir[11] */
     }
     if (cond == 4) 
     {
